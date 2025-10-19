@@ -1,0 +1,17 @@
+name: Claimer
+version: 1.0.0
+main: com.example.claimer.ClaimerPlugin
+description: Beacon-based land claiming plugin
+author: OpenAI
+api-version: '1.21'
+commands:
+  claimadmin:
+    description: Opens the claim administration panel
+    permission: claimer.admin
+permissions:
+  claimer.admin:
+    description: Allows managing all claims
+    default: op
+  claimer.bypass:
+    description: Allows bypassing claim protections
+    default: false
