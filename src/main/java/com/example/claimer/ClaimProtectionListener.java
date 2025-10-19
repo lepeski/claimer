@@ -331,6 +331,10 @@ public class ClaimProtectionListener implements Listener {
                 || Tag.DOORS.isTagged(material)
                 || Tag.CANDLES.isTagged(material)
                 || Tag.SIGNS.isTagged(material)
-                || Tag.HANGING_SIGNS.isTagged(material);
+                || isHangingSign(material);
+    }
+
+    private boolean isHangingSign(Material material) {
+        return material != null && material.name().endsWith("_HANGING_SIGN");
     }
 }

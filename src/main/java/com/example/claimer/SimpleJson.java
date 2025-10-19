@@ -185,9 +185,7 @@ public final class SimpleJson {
                     }
                     char esc = json.charAt(index++);
                     switch (esc) {
-                        case '"':
-                        case '\\':
-                        case '/' -> builder.append(esc);
+                        case '"', '\\', '/' -> builder.append(esc);
                         case 'b' -> builder.append('\b');
                         case 'f' -> builder.append('\f');
                         case 'n' -> builder.append('\n');
