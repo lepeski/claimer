@@ -6,6 +6,7 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -13,6 +14,7 @@ import org.bukkit.Tag;
 import org.bukkit.event.block.*;
 import org.bukkit.event.entity.EntityChangeBlockEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.hanging.HangingBreakByEntityEvent;
 import org.bukkit.event.hanging.HangingPlaceEvent;
 import org.bukkit.event.inventory.InventoryMoveItemEvent;
@@ -22,6 +24,7 @@ import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.InventoryHolder;
+import org.bukkit.projectiles.ProjectileSource;
 import org.bukkit.util.Vector;
 
 import java.util.List;
@@ -209,6 +212,27 @@ public class ClaimProtectionListener implements Listener {
         }
     }
 
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onEntityDamageByEntity(EntityDamageByEntityEvent event) {
+        if (!(event.getEntity() instanceof Player victim)) {
+            return;
+        }
+        Optional<Claim> claim = claimManager.getClaimAt(victim.getLocation());
+        if (claim.isEmpty()) {
+            return;
+        }
+        Player attacker = resolveAttacker(event.getDamager());
+        if (attacker == null) {
+            event.setCancelled(true);
+            return;
+        }
+        if (hasBypass(attacker) || claim.get().isTrusted(attacker.getUniqueId())) {
+            return;
+        }
+        event.setCancelled(true);
+        notifyBlocked(attacker);
+    }
+
     @EventHandler(ignoreCancelled = true)
     public void onEntityChangeBlock(EntityChangeBlockEvent event) {
         if (isProtected(event.getBlock().getLocation())) {
@@ -307,7 +331,7 @@ public class ClaimProtectionListener implements Listener {
     }
 
     private boolean hasBypass(Player player) {
-        return player.hasPermission("claimer.bypass") || player.hasPermission("claimer.admin");
+        return player.hasPermission("claimer.bypass");
     }
 
     private boolean isProtected(Location location) {
@@ -336,5 +360,18 @@ public class ClaimProtectionListener implements Listener {
 
     private boolean isHangingSign(Material material) {
         return material != null && material.name().endsWith("_HANGING_SIGN");
+    }
+
+    private Player resolveAttacker(Entity entity) {
+        if (entity instanceof Player player) {
+            return player;
+        }
+        if (entity instanceof Projectile projectile) {
+            ProjectileSource source = projectile.getShooter();
+            if (source instanceof Player shooter) {
+                return shooter;
+            }
+        }
+        return null;
     }
 }
