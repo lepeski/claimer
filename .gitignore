@@ -1,0 +1,10 @@
+.gradle/
+build/
+/out/
+.idea/
+*.iml
+
+# Local Gradle wrapper artifacts
+gradle/
+gradlew
+gradlew.bat
